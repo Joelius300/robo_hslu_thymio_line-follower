@@ -1,0 +1,3 @@
+[submodule "thymio-python"]
+	path = thymio-python
+	url = git@github.com:Joelius300/thymio-python.git
