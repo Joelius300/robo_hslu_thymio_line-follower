@@ -1,0 +1,66 @@
+import os
+
+from thymio_python.thymiodirect import Connection, Thymio
+from thymio_python.thymiodirect.thymio_serial_ports import ThymioSerialPort
+import sys
+import time
+
+
+if __name__ == "__main__":
+    def on_error(error):
+        print(error)
+        exit(1)  # os._exit(1) # forced exit despite coroutines
+
+    try:
+        th = Thymio(refreshing_coverage={"prox.horizontal", "button.center"})
+        th.on_comm_error = on_error
+        th.connect()
+    except Exception as error:
+        on_error(error)
+
+    # wait 2-3 sec until robots are known
+    time.sleep(2)
+
+    with th:
+        id = th.first_node()
+
+        print(f"id: {id}")
+        print(f"variables: {th.variables(id)}")
+        print(f"events: {th.events(id)}")
+        print(f"native functions: {th.native_functions(id)[0]}")
+
+        # get a variable
+        print(f'prox.horizontal: {th[id]["prox.horizontal"]}')
+
+        # set a variable (scalar or array)
+        th[id]["leds.top"] = [0, 0, 32]
+
+        # set a function called after new variable values have been fetched
+        prox_prev = 0
+        done = False
+
+        def obs(node_id):
+            global prox_prev, done
+            prox = (th[node_id]["prox.horizontal"][5] - th[node_id]["prox.horizontal"][2]) // 10
+            if prox != prox_prev:
+                th[node_id]["motor.left.target"] = prox
+                th[node_id]["motor.right.target"] = prox
+                print(prox)
+                if prox > 5:
+                    th[id]["leds.top"] = [0, 32, 0]
+                elif prox < -5:
+                    th[id]["leds.top"] = [32, 32, 0]
+                elif abs(prox) < 3:
+                    th[id]["leds.top"] = [0, 0, 32]
+                prox_prev = prox
+            if th[node_id]["button.center"]:
+                print("button.center")
+                done = True
+
+        th.set_variable_observer(id, obs)
+
+        while not done:
+            try:
+                time.sleep(.05)
+            except KeyboardInterrupt:
+                break
