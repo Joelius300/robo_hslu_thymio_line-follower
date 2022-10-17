@@ -4,7 +4,7 @@ from thymio_python.thymiodirect import Connection, Thymio
 from thymio_python.thymiodirect.thymio_serial_ports import ThymioSerialPort
 import sys
 import time
-
+from thymio_utils import BUTTON_CENTER, PROXIMITY_GROUND_AMBIENT, PROXIMITY_GROUND_REFLECTED, PROXIMITY_GROUND_DELTA, PROXIMITY_FRONT_BACK
 
 if __name__ == "__main__":
     def on_error(error):
@@ -12,7 +12,7 @@ if __name__ == "__main__":
         exit(1)  # os._exit(1) # forced exit despite coroutines
 
     try:
-        th = Thymio(refreshing_coverage={"prox.horizontal", "button.center"})
+        th = Thymio(refreshing_coverage={BUTTON_CENTER, PROXIMITY_GROUND_AMBIENT, PROXIMITY_GROUND_REFLECTED, PROXIMITY_GROUND_DELTA, PROXIMITY_FRONT_BACK})
         th.on_comm_error = on_error
         th.connect()
     except Exception as error:
@@ -42,6 +42,9 @@ if __name__ == "__main__":
         def obs(node_id):
             global prox_prev, done
             prox = (th[node_id]["prox.horizontal"][5] - th[node_id]["prox.horizontal"][2]) // 10
+
+            print(th[node_id][PROXIMITY_GROUND_AMBIENT])
+
             if prox != prox_prev:
                 th[node_id]["motor.left.target"] = prox
                 th[node_id]["motor.right.target"] = prox
