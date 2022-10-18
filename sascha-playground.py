@@ -7,8 +7,8 @@
 
 # Test of the communication with Thymio via serial port
 
-from thymiodirect import Thymio
-from thymiodirect.thymio_serial_ports import ThymioSerialPort
+from thymio_python.thymiodirect import Thymio
+from thymio_python.thymiodirect.thymio_serial_ports import ThymioSerialPort
 import sys
 import os
 import time
@@ -172,10 +172,6 @@ if __name__ == "__main__":
 
         # def set_motor_speed_according_to_reflection():
 
-    turn_speed = 20
-    speed = 50
-    right_speed = 100
-    left_speed = 100
 
     left_sensor_line_found = True
     right_sensor_line_found = True
@@ -184,7 +180,8 @@ if __name__ == "__main__":
 
     line_not_found_for_turns = 0
 
-    def follow_line(node_id):
+
+    def follow_big_line(node_id):
         global done, speed, turn_speed, left_speed, right_speed, left_sensor_line_found, right_sensor_line_found, line_not_found_for_turns, second_sensor_line_found
 
         #print(th[node_id]["prox"])
@@ -245,6 +242,71 @@ if __name__ == "__main__":
         #Sobald er die Richtung verliert, sollte ich beginnen heftiger in diese richtung zu gegensteuern
         #damit er die Linie wieder findet.
 
+    turn_speed = 20
+    speed = 50
+    right_speed = 100
+    left_speed = 100
+
+    left_sensor_line_touched = False
+    right_sensor_line_touched = False
+
+    #second_sensor_line_found = True
+
+    line_touched_for_turns = 0
+
+
+    def follow_small_line(node_id):
+        global done, speed, turn_speed, left_speed, right_speed, left_sensor_line_touched, right_sensor_line_touched, line_touched_for_turns #second_sensor_line_found
+
+        #print(th[node_id]["prox"])
+        print(th[node_id]["prox.ground.ambiant"])
+        print(th[node_id]["prox.ground.reflected"])
+        print(th[node_id]["prox.ground.delta"])
+
+        #First sensor that does not recognize the line anymore
+        #Could implement that as soon as a second sensor also doesn't see it that it turns faster
+
+        if (th[node_id]["prox.ground.reflected"][0] < 300):
+            if (not right_sensor_line_touched):
+                left_sensor_line_touched = True
+        else:
+            left_sensor_line_touched = False
+
+        if (th[node_id]["prox.ground.reflected"][1] < 300):
+            if (not left_sensor_line_touched):
+                right_sensor_line_touched = True
+        else:
+            right_sensor_line_touched = False
+
+
+
+        if (right_sensor_line_touched or left_sensor_line_touched):
+            line_touched_for_turns = line_touched_for_turns + 5
+
+        #I Could stabilize by counting the line not found for turns down and correct the left or right
+        #speed with it
+
+        if (left_sensor_line_touched):
+            right_speed = turn_speed + line_touched_for_turns
+            left_speed = turn_speed
+        elif (right_sensor_line_touched):
+            left_speed = turn_speed + line_touched_for_turns
+            right_speed = turn_speed
+        else:
+            right_speed = speed
+            left_speed = speed
+
+        th[node_id]["motor.left.target"] = left_speed
+        th[node_id]["motor.right.target"] = right_speed
+
+        if th[node_id]["button.center"]:
+            print("button.center")
+            done = True
+
+        #Sobald er die Richtung verliert, sollte ich beginnen heftiger in diese richtung zu gegensteuern
+        #damit er die Linie wieder findet.
+
+
 
     #def set_motor_speed_according_to_reflection():
 
@@ -290,7 +352,7 @@ if __name__ == "__main__":
 
     #th.set_variable_observer(id, straight_line)
 
-    th.set_variable_observer(id,  follow_line)
+    th.set_variable_observer(id,  follow_small_line)
     while not done:
         time.sleep(0.1)
     th.disconnect()
