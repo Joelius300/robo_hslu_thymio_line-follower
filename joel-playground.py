@@ -9,14 +9,19 @@ from thymio_utils import BUTTON_CENTER, PROXIMITY_GROUND_AMBIENT, PROXIMITY_GROU
 if __name__ == "__main__":
     def on_error(error):
         print(error)
-        exit(1)  # os._exit(1) # forced exit despite coroutines
+        global done
+        done = True  # should make the waiting loop exit which (thanks to the with) will disconnect the Thymio
 
+    th = None
     try:
         th = Thymio(refreshing_coverage={BUTTON_CENTER, PROXIMITY_GROUND_AMBIENT, PROXIMITY_GROUND_REFLECTED, PROXIMITY_GROUND_DELTA, PROXIMITY_FRONT_BACK})
         th.on_comm_error = on_error
         th.connect()
     except Exception as error:
-        on_error(error)
+        if th is not None:
+            th.disconnect()
+        print(error)
+        sys.exit(1)
 
     # wait 2-3 sec until robots are known
     time.sleep(2)
