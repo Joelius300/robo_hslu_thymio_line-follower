@@ -10,9 +10,13 @@ PROXIMITY_GROUND_REFLECTED = "prox.ground.reflected"
 PROXIMITY_GROUND_DELTA = "prox.ground.delta"
 
 BUTTON_CENTER = "button.center"
+BUTTON_RIGHT = "button.right"
+BUTTON_LEFT = "button.left"
 
 MOTOR_LEFT = "motor.left.target"
 MOTOR_RIGHT = "motor.right.target"
+
+LEDS_TOP = "leds.top"
 
 
 def print_thymio_functions_events(th: Thymio, node_id: int):
