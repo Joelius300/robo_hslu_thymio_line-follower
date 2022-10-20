@@ -1,6 +1,7 @@
 import math
 from thymio_utils import BUTTON_CENTER, MOTOR_LEFT, MOTOR_RIGHT, PROXIMITY_GROUND_DELTA, PROXIMITY_GROUND_REFLECTED, \
-    SingleSerialThymioRunner, ThymioObserver, BUTTON_RIGHT, BUTTON_LEFT, LEDS_TOP
+    SingleSerialThymioRunner, ThymioObserver, BUTTON_RIGHT, BUTTON_LEFT, LEDS_TOP, GROUND_SENSOR_RIGHT, \
+    GROUND_SENSOR_LEFT
 
 
 class LineFollower(ThymioObserver):
@@ -87,7 +88,8 @@ class LineFollower(ThymioObserver):
 
     def follow_the_darkness(self):
         # steer towards darkness (== less reflextion), so positive = right, negative = left
-        steer = self.th[PROXIMITY_GROUND_REFLECTED][0] - self.th[PROXIMITY_GROUND_REFLECTED][1]
+        steer = self.th[PROXIMITY_GROUND_REFLECTED][GROUND_SENSOR_LEFT] - \
+                self.th[PROXIMITY_GROUND_REFLECTED][GROUND_SENSOR_RIGHT]
 
         new_speed_inner = self.speed - self.map_steer_to_speed_reduction(steer)
 

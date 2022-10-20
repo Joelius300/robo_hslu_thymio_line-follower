@@ -9,6 +9,9 @@ PROXIMITY_GROUND_AMBIENT = "prox.ground.ambiant"
 PROXIMITY_GROUND_REFLECTED = "prox.ground.reflected"
 PROXIMITY_GROUND_DELTA = "prox.ground.delta"
 
+GROUND_SENSOR_LEFT = 0
+GROUND_SENSOR_RIGHT = 1
+
 BUTTON_CENTER = "button.center"
 BUTTON_RIGHT = "button.right"
 BUTTON_LEFT = "button.left"
