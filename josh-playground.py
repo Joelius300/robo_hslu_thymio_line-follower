@@ -18,8 +18,8 @@ class LineFollower(ThymioObserver):
         self.slow_steps_remaining = -1
         print(self.curve)
 
-    def exponential_curve(self, steps: int, stop: float, idklol: float):
-        base = math.log(steps) / math.log(idklol)
+    def exponential_curve(self, steps: int, stop: float, log_base: float):
+        base = math.log(steps, base=log_base)
         points = [math.floor(stop / math.pow(base, i)) for i in range(steps)]
         points.reverse()
         return points
