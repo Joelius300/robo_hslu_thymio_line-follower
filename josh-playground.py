@@ -1,29 +1,37 @@
 import math
 from thymio_utils import BUTTON_CENTER, MOTOR_LEFT, MOTOR_RIGHT, PROXIMITY_GROUND_DELTA, PROXIMITY_GROUND_REFLECTED, \
     SingleSerialThymioRunner, ThymioObserver, BUTTON_RIGHT, BUTTON_LEFT, LEDS_TOP, GROUND_SENSOR_RIGHT, \
-    GROUND_SENSOR_LEFT
+    GROUND_SENSOR_LEFT, BUTTON_FRONT, BUTTON_BACK
 
 
 class LineFollower(ThymioObserver):
     def __init__(self):
         super().__init__()
         self.step = 0
-        self.speed = 100
-        self.temp_speed = None
-        self.slow_speed = 75
+        self.original_speed = 150
+        self.speed = None
+        self.slow_speed = 150
         self.speed_step = 10
         self.min_darkness = 50
-        self.max_darkness = 700
+        self.max_darkness = 650
         self.curve_steps = 30
-        self.curve = self.exponential_curve(self.curve_steps, abs(self.speed * 1.2), 20)
+        self.curve = None
+        self.slow_steps_to_make = 10
         self.slow_steps_remaining = -1
-        print(self.curve)
+        self.set_speed(self.original_speed)
 
     def exponential_curve(self, steps: int, stop: float, log_base: float):
         base = math.log(steps, log_base)
         points = [math.floor(stop / math.pow(base, i)) for i in range(steps)]
         points.reverse()
         return points
+
+    def set_speed(self, new_speed):
+        self.speed = math.floor(new_speed)
+        self.curve = self.exponential_curve(self.curve_steps, abs(self.speed * 1.1), 20)
+        print(self.speed)
+        print(self.curve)
+        return
 
     def _update(self):
         self.step = self.step + 1
@@ -56,12 +64,12 @@ class LineFollower(ThymioObserver):
             self.th[MOTOR_LEFT] = 0
             self.th[MOTOR_RIGHT] = 0
             self.stop()
+        if self.th[BUTTON_FRONT]:
+            self.original_speed = self.original_speed + self.speed_step
+            self.set_speed(self.original_speed)
         if self.th[BUTTON_RIGHT]:
-            self.speed = self.speed + self.speed_step
-            print(self.speed)
-        if self.th[BUTTON_LEFT]:
-            self.speed = self.speed - self.speed_step
-            print(self.speed)
+            self.original_speed = self.original_speed - self.speed_step
+            self.set_speed(self.original_speed)
 
     # WIP
     # works as intended but intended badly
@@ -74,18 +82,6 @@ class LineFollower(ThymioObserver):
         curve_index = math.floor(abs((steer - self.min_darkness) * ratio))
         return self.curve[curve_index]
 
-    # WIP
-    # THIS IS LITERALLY BORKEN MONKA
-    def adjust_speed(self, slow_speed):
-        if not self.temp_speed:
-            self.temp_speed = self.speed
-            self.speed = slow_speed
-        self.slow_steps_remaining = self.slow_steps_remaining - 1
-        if self.slow_steps_remaining <= 0:
-            self.speed = self.temp_speed
-            self.temp_speed = None
-        return
-
     def follow_the_darkness(self):
         # steer towards darkness (== less reflextion), so positive = right, negative = left
         steer = self.th[PROXIMITY_GROUND_REFLECTED][GROUND_SENSOR_LEFT] - \
@@ -93,14 +89,14 @@ class LineFollower(ThymioObserver):
 
         new_speed_inner = self.speed - self.map_steer_to_speed_reduction(steer)
 
-        # This cheap formula works
-        # new_speed_inner = self.speed - abs(steer // 10)
-
         if new_speed_inner <= 0:
-            self.slow_steps_remaining = 10
+            self.slow_steps_remaining = self.slow_steps_to_make
 
         if self.slow_steps_remaining >= 0:
-            self.adjust_speed(self.slow_speed)
+            fraction = (self.slow_steps_to_make - self.slow_steps_remaining) / self.slow_steps_to_make
+            difference = (self.original_speed - self.slow_speed)
+            self.set_speed(self.slow_speed + fraction * difference)
+            self.slow_steps_remaining = self.slow_steps_remaining - 1
 
         if steer > self.min_darkness:
             self.th[MOTOR_RIGHT] = new_speed_inner
