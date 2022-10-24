@@ -15,6 +15,8 @@ GROUND_SENSOR_RIGHT = 1
 BUTTON_CENTER = "button.center"
 BUTTON_RIGHT = "button.right"
 BUTTON_LEFT = "button.left"
+BUTTON_FRONT = "button.forward"
+BUTTON_BACK = "button.backward"
 
 MOTOR_LEFT = "motor.left.target"
 MOTOR_RIGHT = "motor.right.target"
