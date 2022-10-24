@@ -108,7 +108,7 @@ class ThymioObserver(ABC):
         This also stops run() and block_until_done() from blocking and makes them return.
         """
         self._done = True
-        self.thymio.set_variable_observer(self._node_id, lambda: None)
+        self.thymio.set_variable_observer(self._node_id, lambda n: None)
 
     def __enter__(self):
         return self
