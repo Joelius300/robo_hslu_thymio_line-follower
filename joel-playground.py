@@ -133,7 +133,7 @@ class LineFollower(ThymioObserver):
             print(f"Steer {steer} -> {speed_reduction} (-inner, +outer)")
 
             inner_speed -= speed_reduction  # - int(speed_reduction / 2)  # slow inner
-            outer_speed -= speed_reduction  # + int(speed_reduction / 2)  # speed up outer
+            outer_speed += speed_reduction  # + int(speed_reduction / 2)  # speed up outer
 
             overshot = max(0, self.min_speed - inner_speed)  # stores the speed the reduction overshot the min_speed by
             if overshot > 0:
