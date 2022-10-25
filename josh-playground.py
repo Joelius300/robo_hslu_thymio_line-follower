@@ -16,7 +16,7 @@ class LineFollower(ThymioObserver):
         self.max_darkness = 650
         self.curve_steps = 30
         self.curve = None
-        self.slow_steps_to_make = 10
+        self.slow_steps_to_make = 25
         self.slow_steps_remaining = -1
         self.set_speed(self.original_speed)
 
@@ -67,7 +67,7 @@ class LineFollower(ThymioObserver):
         if self.th[BUTTON_FRONT]:
             self.original_speed = self.original_speed + self.speed_step
             self.set_speed(self.original_speed)
-        if self.th[BUTTON_RIGHT]:
+        if self.th[BUTTON_BACK]:
             self.original_speed = self.original_speed - self.speed_step
             self.set_speed(self.original_speed)
 
@@ -108,7 +108,7 @@ class LineFollower(ThymioObserver):
 
 if __name__ == "__main__":
     observer = LineFollower()
-    runner = SingleSerialThymioRunner({BUTTON_CENTER, PROXIMITY_GROUND_REFLECTED, PROXIMITY_GROUND_DELTA},
+    runner = SingleSerialThymioRunner({PROXIMITY_GROUND_REFLECTED, PROXIMITY_GROUND_DELTA, BUTTON_CENTER, BUTTON_FRONT, BUTTON_BACK},
                                       observer,
                                       0.1)
     runner.run()
