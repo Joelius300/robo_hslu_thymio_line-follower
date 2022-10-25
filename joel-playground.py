@@ -61,15 +61,22 @@ class LineFollower(ThymioObserver):
     """
     def __init__(self):
         super().__init__()
-        self.left_speed = 100
-        self.right_speed = 100
+        self.left_speed = 200
+        self.right_speed = 200
         self.min_darkness = 50
-        self.max_darkness = 700
+        self.max_darkness = 650
         self.min_speed = 10
-        self.max_speed = 200
-        self.last_steers = np.zeros(3, dtype=int)
-        self.last_steers_index = 0
-        self.curve = self.speed_reduction_curve(type='pow', strength=10, max_reduction=.5)
+        self.max_speed = 500
+        moving_average_length = 3
+        self.last_steers = np.zeros(moving_average_length, dtype=int)
+        weights = np.arange(moving_average_length + 1, 1, -1)
+        self.last_steers_weights = weights / weights.sum()
+        print(self.last_steers_weights)
+
+        # self.curve = self.speed_reduction_curve(type='pow', strength=7, max_reduction=.4)
+        self.curve = self.speed_reduction_curve(type='pow', strength=3, max_reduction=.1)
+        # self.curve = self.speed_reduction_curve(type='exp', strength='e', max_reduction=.025)
+        # self.curve = self.speed_reduction_curve(type='pow', strength=4, max_reduction=.50)
         print(self.curve)
 
     @staticmethod
@@ -110,10 +117,10 @@ class LineFollower(ThymioObserver):
         steer = self.th[PROXIMITY_GROUND_REFLECTED][GROUND_SENSOR_LEFT] - \
                 self.th[PROXIMITY_GROUND_REFLECTED][GROUND_SENSOR_RIGHT]
 
-        # self.last_steers[self.last_steers_index] = steer
-        # self.last_steers_index = (self.last_steers_index + 1) % len(self.last_steers)
-        # steer = math.ceil(np.mean(self.last_steers)) * (-1 if steer < 0 else 1)
-        # print(f"Steers: {self.last_steers}")
+        self.last_steers[1:] = self.last_steers[:-1]
+        self.last_steers[0] = steer
+        steer = np.average(self.last_steers, weights=self.last_steers_weights)
+        print(f"Steers: {self.last_steers} -> steer: {steer}")
 
         max_reflection_diff = self.max_darkness - self.min_darkness
         if abs(steer) <= max_reflection_diff * 0.1:
@@ -121,29 +128,40 @@ class LineFollower(ThymioObserver):
                 # retain ratio
                 return
 
-            print(f"Steer {steer} -> 5% speedup")
-            self.left_speed = round(self.left_speed * 1.05)
-            self.right_speed = round(self.right_speed * 1.05)
+            print(f"Steer {steer} -> 1% speedup")
+            self.left_speed = round(self.left_speed * 1.01)
+            self.right_speed = round(self.right_speed * 1.01)
         else:
             speed_reduction_percent = self.map_steer_to_speed_reduction(steer)
             inner_speed, outer_speed = (self.left_speed, self.right_speed) if steer < 0 else (self.right_speed, self.left_speed)
 
-            avg_speed = (inner_speed + outer_speed) / 2
-            speed_reduction = math.floor(avg_speed * speed_reduction_percent / 2)
-            print(f"Steer {steer} -> {speed_reduction} (-inner, +outer)")
+            # curve_ratio = inner_speed / outer_speed  # smaller when the curve is harder -> decrease speed adjustment in hard curve
 
-            inner_speed -= speed_reduction  # - int(speed_reduction / 2)  # slow inner
-            outer_speed += speed_reduction  # + int(speed_reduction / 2)  # speed up outer
+            # print(f"Steer {steer} -> {speed_reduction_percent:%} * {curve_ratio:%} (= {speed_reduction_percent * curve_ratio:%}) (-inner, +outer)")
+            print(f"Steer {steer} -> {speed_reduction_percent:%} (-inner, +outer)")
 
-            overshot = max(0, self.min_speed - inner_speed)  # stores the speed the reduction overshot the min_speed by
-            if overshot > 0:
-                print(f"Adding overshot {overshot} because inner too slow")
-                outer_speed += overshot
+            # avg_speed = (inner_speed + outer_speed) / 2
+            # speed_reduction = math.floor(avg_speed * speed_reduction_percent / 2 * curve_ratio)
+            # print(f"Steer {steer} -> {speed_reduction} (-inner, +outer)")
+            #
+            # inner_speed -= speed_reduction  # - int(speed_reduction / 2)  # slow inner
+            # outer_speed += speed_reduction  # + int(speed_reduction / 2)  # speed up outer
 
-            overshot = min(0, self.max_speed - outer_speed)  # stores the speed the increase overshot the max_speed by (negative)
-            if overshot < 0:
-                print(f"Adding overshot {overshot} because outer too fast")
-                inner_speed += overshot
+            # inner_speed = round(inner_speed * (1 - speed_reduction_percent * curve_ratio))
+            # outer_speed = round(outer_speed * (1 + speed_reduction_percent * curve_ratio))
+
+            inner_speed = math.ceil(inner_speed * (1 - speed_reduction_percent))
+            outer_speed = math.ceil(outer_speed * (1 + speed_reduction_percent))
+
+            # overshot = max(0, self.min_speed - inner_speed)  # stores the speed the reduction overshot the min_speed by
+            # if overshot > 0:
+            #     print(f"Adding overshot {overshot} because inner too slow")
+            #     outer_speed += overshot
+            #
+            # overshot = min(0, self.max_speed - outer_speed)  # stores the speed the increase overshot the max_speed by (negative)
+            # if overshot < 0:
+            #     print(f"Adding overshot {overshot} because outer too fast")
+            #     inner_speed += overshot
 
             self.left_speed, self.right_speed = (inner_speed, outer_speed) if steer < 0 else (outer_speed, inner_speed)
 
@@ -159,5 +177,5 @@ if __name__ == "__main__":
     observer = LineFollower()
     runner = SingleSerialThymioRunner({BUTTON_CENTER, PROXIMITY_GROUND_REFLECTED, PROXIMITY_GROUND_DELTA},
                                       observer,
-                                      1 / 5)
+                                      1 / 10)
     runner.run()
