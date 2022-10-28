@@ -68,6 +68,7 @@ class LineFollower(ThymioObserver):
         self.min_speed = 10
         self.max_speed = 500
         moving_average_length = 3
+        self.last_averaged_steer = 0
         self.last_steers = np.zeros(moving_average_length, dtype=int)
         weights = np.arange(moving_average_length + 1, 1, -1)
         self.last_steers_weights = weights / weights.sum()
@@ -121,6 +122,13 @@ class LineFollower(ThymioObserver):
         self.last_steers[0] = steer
         steer = np.average(self.last_steers, weights=self.last_steers_weights)
         print(f"Steers: {self.last_steers} -> steer: {steer}")
+
+        # if steer is closer to 0 than self.last_averaged_steer: do nothing
+        if abs(steer) <= abs(self.last_averaged_steer):
+            print("More on track than before, don't adjust.")
+            return
+
+        self.last_averaged_steer = steer
 
         max_reflection_diff = self.max_darkness - self.min_darkness
         if abs(steer) <= max_reflection_diff * 0.1:
