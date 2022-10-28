@@ -1,13 +1,14 @@
 from __future__ import annotations
-import numpy as np
-import math
-from typing import Literal
+
 import datetime
+import math
 
-from thymio_utils import BUTTON_CENTER, PROXIMITY_GROUND_AMBIENT, PROXIMITY_GROUND_REFLECTED, PROXIMITY_GROUND_DELTA, \
-    PROXIMITY_FRONT_BACK, MOTOR_LEFT, MOTOR_RIGHT, ThymioObserver, print_thymio_functions_events, \
-    SingleSerialThymioRunner, BUTTON_RIGHT, BUTTON_LEFT, GROUND_SENSOR_LEFT, GROUND_SENSOR_RIGHT
+import numpy as np
 
+from thymio_python.thymiodirect import ThymioObserver, SingleSerialThymioRunner
+from thymio_python.thymiodirect.thymio_constants import BUTTON_CENTER, \
+    PROXIMITY_GROUND_REFLECTED, PROXIMITY_GROUND_DELTA, \
+    MOTOR_LEFT, MOTOR_RIGHT, GROUND_SENSOR_LEFT, GROUND_SENSOR_RIGHT
 
 
 def clamp(num, min_value, max_value):

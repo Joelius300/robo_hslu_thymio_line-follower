@@ -1,41 +1,16 @@
 import math
 from typing import Literal
 
-from thymio_utils import BUTTON_CENTER, PROXIMITY_GROUND_AMBIENT, PROXIMITY_GROUND_REFLECTED, PROXIMITY_GROUND_DELTA, \
-    PROXIMITY_FRONT_BACK, MOTOR_LEFT, MOTOR_RIGHT, ThymioObserver, print_thymio_functions_events, \
-    SingleSerialThymioRunner, BUTTON_RIGHT, BUTTON_LEFT, GROUND_SENSOR_LEFT, GROUND_SENSOR_RIGHT
 import numpy as np
+
+from thymio_python.thymiodirect import ThymioObserver, SingleSerialThymioRunner
+from thymio_python.thymiodirect.thymio_constants import PROXIMITY_GROUND_REFLECTED, \
+    PROXIMITY_GROUND_DELTA, GROUND_SENSOR_LEFT, GROUND_SENSOR_RIGHT, BUTTON_CENTER, MOTOR_LEFT, MOTOR_RIGHT
 
 
 def clamp(num, min_value, max_value):
     num = max(min(num, max_value), min_value)
     return num
-
-
-class HandAvoider(ThymioObserver):
-
-    def __init__(self):
-        super().__init__()
-        self.prox_prev = None
-
-    def _update(self):
-        prox = (self.th[PROXIMITY_FRONT_BACK][5] - self.th[PROXIMITY_FRONT_BACK][2]) // 10
-        print(self.th[PROXIMITY_GROUND_AMBIENT])
-
-        if prox != self.prox_prev:
-            self.th[MOTOR_LEFT] = prox
-            self.th[MOTOR_RIGHT] = prox
-            print(prox)
-            if prox > 5:
-                self.th["leds.top"] = [0, 32, 0]
-            elif prox < -5:
-                self.th["leds.top"] = [32, 32, 0]
-            elif abs(prox) < 3:
-                self.th["leds.top"] = [0, 0, 32]
-            self.prox_prev = prox
-        if self.th[BUTTON_CENTER]:
-            print("Center button pressed")
-            self.stop()
 
 
 class LineFollower(ThymioObserver):
@@ -59,6 +34,7 @@ class LineFollower(ThymioObserver):
     - Know on what kind of curve you are currently (for.. something?)
     - Implement the rolling average again but make it sensible to the curve you're on -> figure out the +- issue
     """
+
     def __init__(self):
         super().__init__()
         self.left_speed = 200
@@ -141,7 +117,8 @@ class LineFollower(ThymioObserver):
             self.right_speed = round(self.right_speed * 1.01)
         else:
             speed_reduction_percent = self.map_steer_to_speed_reduction(steer)
-            inner_speed, outer_speed = (self.left_speed, self.right_speed) if steer < 0 else (self.right_speed, self.left_speed)
+            inner_speed, outer_speed = (self.left_speed, self.right_speed) if steer < 0 else (
+                self.right_speed, self.left_speed)
 
             # curve_ratio = inner_speed / outer_speed  # smaller when the curve is harder -> decrease speed adjustment in hard curve
 
