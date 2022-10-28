@@ -7,14 +7,11 @@
 
 # Test of the communication with Thymio via serial port
 
-from thymio_python.thymiodirect import Thymio
-from thymio_python.thymiodirect.thymio_serial_ports import ThymioSerialPort
-from thymio_utils import BUTTON_CENTER, PROXIMITY_GROUND_AMBIENT, PROXIMITY_GROUND_REFLECTED, PROXIMITY_GROUND_DELTA, \
-    PROXIMITY_FRONT_BACK, MOTOR_LEFT, MOTOR_RIGHT, ThymioObserver, print_thymio_functions_events, \
-    SingleSerialThymioRunner
-import sys
-import os
-import time
+from thymio_python.thymiodirect.single_serial_thymio_runner import SingleSerialThymioRunner
+from thymio_python.thymiodirect import ThymioObserver
+from thymio_python.thymiodirect.thymio_constants import PROXIMITY_FRONT_BACK, PROXIMITY_GROUND_AMBIENT, PROXIMITY_GROUND_REFLECTED, \
+    PROXIMITY_GROUND_DELTA, BUTTON_CENTER
+
 
 class LineFollower(ThymioObserver):
 

@@ -1,7 +1,10 @@
 import math
-from thymio_utils import BUTTON_CENTER, MOTOR_LEFT, MOTOR_RIGHT, PROXIMITY_GROUND_DELTA, PROXIMITY_GROUND_REFLECTED, \
-    SingleSerialThymioRunner, ThymioObserver, BUTTON_RIGHT, BUTTON_LEFT, LEDS_TOP, GROUND_SENSOR_RIGHT, \
-    GROUND_SENSOR_LEFT, BUTTON_FRONT, BUTTON_BACK
+
+from thymio_python.thymiodirect import SingleSerialThymioRunner, ThymioObserver
+from thymio_python.thymiodirect.thymio_constants import PROXIMITY_GROUND_REFLECTED, PROXIMITY_GROUND_DELTA, \
+    GROUND_SENSOR_LEFT, \
+    GROUND_SENSOR_RIGHT, BUTTON_CENTER, BUTTON_FRONT, BUTTON_BACK, MOTOR_LEFT, MOTOR_RIGHT, \
+    LEDS_TOP
 
 
 class LineFollower(ThymioObserver):
@@ -145,7 +148,8 @@ class LineFollower(ThymioObserver):
 
 if __name__ == "__main__":
     observer = LineFollower()
-    runner = SingleSerialThymioRunner({PROXIMITY_GROUND_REFLECTED, PROXIMITY_GROUND_DELTA, BUTTON_CENTER, BUTTON_FRONT, BUTTON_BACK},
-                                      observer,
-                                      0.1)
+    runner = SingleSerialThymioRunner(
+        {PROXIMITY_GROUND_REFLECTED, PROXIMITY_GROUND_DELTA, BUTTON_CENTER, BUTTON_FRONT, BUTTON_BACK},
+        observer,
+        0.1)
     runner.run()
