@@ -1,9 +1,10 @@
 import math
+import time
 from typing import Literal
 
 import numpy as np
 
-from thymio_python.thymiodirect import ThymioObserver, SingleSerialThymioRunner
+from thymio_python.thymiodirect import ThymioObserver, SingleSerialThymioRunner, Thymio
 from thymio_python.thymiodirect.thymio_constants import PROXIMITY_GROUND_REFLECTED, \
     PROXIMITY_GROUND_DELTA, GROUND_SENSOR_LEFT, GROUND_SENSOR_RIGHT, BUTTON_CENTER, MOTOR_LEFT, MOTOR_RIGHT
 
@@ -51,8 +52,8 @@ class LineFollower(ThymioObserver):
         print(self.last_steers_weights)
 
         # self.curve = self.speed_reduction_curve(type='pow', strength=7, max_reduction=.4)
-        self.curve = self.speed_reduction_curve(type='pow', strength=3, max_reduction=.1)
-        # self.curve = self.speed_reduction_curve(type='exp', strength='e', max_reduction=.025)
+        self.curve = self.speed_reduction_curve(type='pow', strength=3, max_reduction=.05)
+        # self.curve = self.speed_reduction_curve(type='exp', strength='e', max_reduction=.05)
         # self.curve = self.speed_reduction_curve(type='pow', strength=4, max_reduction=.50)
         print(self.curve)
 
@@ -160,7 +161,20 @@ class LineFollower(ThymioObserver):
 
 if __name__ == "__main__":
     observer = LineFollower()
-    runner = SingleSerialThymioRunner({BUTTON_CENTER, PROXIMITY_GROUND_REFLECTED, PROXIMITY_GROUND_DELTA},
-                                      observer,
-                                      1 / 10)
-    runner.run()
+    # runner = SingleSerialThymioRunner({BUTTON_CENTER, PROXIMITY_GROUND_REFLECTED, PROXIMITY_GROUND_DELTA},
+    #                                   observer,
+    #                                   1 / 20)
+
+    def on_error(error):
+        print(error)
+        observer.stop()
+
+    thymio = Thymio(use_tcp=True, host="127.0.0.1", tcp_port=35287, on_comm_error=on_error)
+
+    with thymio, observer:
+        thymio.connect()
+
+        time.sleep(2)
+
+        observer.set_thymio_node(thymio, thymio.first_node())
+        observer.run()  # blocks until done
