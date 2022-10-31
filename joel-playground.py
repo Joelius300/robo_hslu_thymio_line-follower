@@ -176,5 +176,4 @@ if __name__ == "__main__":
 
         time.sleep(2)
 
-        observer.set_thymio_node(thymio, thymio.first_node())
-        observer.run()  # blocks until done
+        observer.run(thymio, thymio.first_node())  # blocks until done
