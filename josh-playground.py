@@ -11,14 +11,14 @@ class LineFollower(ThymioObserver):
     def __init__(self):
         super().__init__()
         self.step = 0
-        self.original_speed = 250
+        self.original_speed = 150
         self.speed = None
         self.slow_speed = 150
         self.speed_step = 10
-        self.min_darkness = 80
-        self.max_darkness = 400
+        self.min_darkness = 50
+        self.max_darkness = 600
         self.curve_steps = 30
-        self.original_curve = self.exponential_curve(self.curve_steps, abs(self.original_speed * 1.1), 20)
+        self.original_curve = self.exponential_curve(self.curve_steps, abs(self.original_speed), 20)
         print(self.original_curve)
         self.curve = self.original_curve
         self.slow_steps_to_make = 10
@@ -73,9 +73,11 @@ class LineFollower(ThymioObserver):
         if self.th[BUTTON_FRONT]:
             self.original_speed = self.original_speed + self.speed_step
             self.set_speed(self.original_speed)
+            print(self.original_speed)
         if self.th[BUTTON_BACK]:
             self.original_speed = self.original_speed - self.speed_step
             self.set_speed(self.original_speed)
+            print(self.original_speed)
 
     # WIP
     # works as intended but intended badly
@@ -132,8 +134,6 @@ class LineFollower(ThymioObserver):
             difference = (self.original_speed - self.slow_speed)
             self.set_speed(self.slow_speed + fraction * difference)
             self.slow_steps_remaining = self.slow_steps_remaining - 1
-            print(fraction)
-            print(self.slow_steps_remaining, self.speed)
 
         if steer >= self.min_darkness:
             self.th[MOTOR_LEFT] = self.speed
