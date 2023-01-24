@@ -1,5 +1,7 @@
 # ROBO HSLU Thymio line follower
 
+Three different implementations of a program that should make Thymio follow a line. In the end, all of them worked _somewhat_ but none of them did _well_. We learned that implementing a PID controller from the beginning would've worked much much better without all the insane overcomplicated ideas we tried. We also did a fun experiment to see if we could steer the Thymio using an Xbox controller (don't abuse this please).
+
 ## Setup
 
 1. Update the submodule with `git submodule update`.
